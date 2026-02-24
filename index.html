@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Xpertistic Mastery Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        stone: { 750: '#3d3a38', 850: '#22201e', 950: '#151413' }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+        }
+        
+        .highlight-phrase { background-color: #e0f2fe; padding: 2px 4px; border-radius: 4px; font-weight: 600; color: #0369a1; }
+        .dark .highlight-phrase { background-color: #0c4a6e; color: #7dd3fc; }
+        
+        .highlight-clause { background-color: #fef3c7; padding: 2px 4px; border-radius: 4px; font-weight: 600; color: #b45309; }
+        .dark .highlight-clause { background-color: #78350f; color: #fcd34d; }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .correct-ans { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; transform: scale(1.02); transition: all 0.3s ease; }
+        .dark .correct-ans { background-color: #064e3b !important; border-color: #10b981 !important; color: #d1fae5 !important; }
+        .wrong-ans { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; opacity: 0.8; }
+        
+        .reveal-section { opacity: 0; }
+        .reveal-section.visible { animation: fadeInUp 0.6s ease-out forwards; }
+        
+        input[type="radio"] { width: 1.2rem; height: 1.2rem; accent-color: #4f46e5; }
+    </style>
+</head>
+<body class="bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-200 font-sans transition-colors duration-300">
+
+    <nav class="bg-white dark:bg-stone-900 shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <span class="text-xl font-bold tracking-tight text-stone-900 dark:text-white">Xpert<span class="text-indigo-600">istic</span></span>
+                </div>
+                <div class="flex items-center space-x-2 md:space-x-6">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition active:scale-90">
+                        <span id="theme-icon" class="text-lg">🌙</span>
+                    </button>
+                    <div class="flex space-x-3 md:space-x-6 text-sm md:text-base">
+                        <button onclick="scrollToSection('concept-lab')" class="text-stone-500 hover:text-indigo-600 dark:text-stone-400 font-medium">Concepts</button>
+                        <button onclick="scrollToSection('practice-arena')" class="text-stone-500 hover:text-indigo-600 dark:text-stone-400 font-medium">Practice</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="max-w-4xl mx-auto mt-10 md:mt-16 px-4 text-center reveal-section visible">
+        <h1 class="text-3xl md:text-5xl font-extrabold text-stone-900 dark:text-white mb-4 leading-tight">Mastering Phrases & Clauses</h1>
+        <p class="text-base md:text-lg text-stone-600 dark:text-stone-400 mb-8 max-w-xl mx-auto">
+            Experience the next level of grammar with <span class="font-bold text-stone-900 dark:text-white">Xpert<span class="text-indigo-600">istic</span></span>.
+        </p>
+    </header>
+
+    <!-- ✨ AI Architect Section -->
+    <section class="max-w-6xl mx-auto mt-10 px-4 reveal-section">
+        <div class="bg-indigo-600 text-white p-6 md:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+            <div class="relative z-10">
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">✨ AI Sentence Architect</h2>
+                <p class="mb-6 opacity-90 max-w-2xl">Type any sentence below. Xpertistic AI will break it down and identify the phrases and clauses for you instantly.</p>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="text" id="ai-input" placeholder="e.g., Running through the park, I realized that life is beautiful." 
+                           class="flex-1 px-6 py-4 rounded-2xl bg-white/10 border border-white/20 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 text-lg">
+                    <button onclick="analyzeSentence()" class="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-bold hover:bg-indigo-50 transition active:scale-95 shadow-lg flex items-center justify-center gap-2">
+                        Analyze Now
+                    </button>
+                </div>
+                <div id="ai-result-area" class="hidden mt-8 p-6 bg-white/10 rounded-2xl border border-white/10 animate__animated animate__fadeIn">
+                    <div id="ai-loader" class="flex items-center gap-3">
+                        <div class="loader !border-white/20 !border-top-white"></div> <span>Architect is calculating...</span>
+                    </div>
+                    <div id="ai-analysis-content" class="text-lg leading-relaxed"></div>
+                </div>
+            </div>
+            <!-- Decorative circle -->
+            <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        </div>
+    </section>
+
+    <!-- Concept Lab -->
+    <section id="concept-lab" class="max-w-6xl mx-auto mt-16 px-4 reveal-section">
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <h2 class="text-2xl font-bold text-stone-900 dark:text-white border-l-4 border-indigo-600 pl-3">Concept Lab</h2>
+            <button onclick="getDeepDive()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-full shadow-lg transition flex items-center justify-center gap-2 active:scale-95">
+                ✨ Deep Dive
+            </button>
+        </div>
+
+        <div class="bg-white dark:bg-stone-900 rounded-2xl shadow-xl border border-stone-200 dark:border-stone-800 overflow-hidden flex flex-col md:flex-row">
+            <div class="w-full md:w-1/4 bg-stone-50 dark:bg-stone-850 border-b md:border-b-0 md:border-r border-stone-200 dark:border-stone-800 p-3 flex md:flex-col overflow-x-auto gap-2">
+                <button onclick="loadConcept('noun')" id="btn-noun" class="whitespace-nowrap flex-1 md:flex-none text-center md:text-left px-4 py-3 rounded-xl font-medium transition active:scale-95">Noun Role</button>
+                <button onclick="loadConcept('adj')" id="btn-adj" class="whitespace-nowrap flex-1 md:flex-none text-center md:text-left px-4 py-3 rounded-xl font-medium transition active:scale-95">Adjective</button>
+                <button onclick="loadConcept('adv')" id="btn-adv" class="whitespace-nowrap flex-1 md:flex-none text-center md:text-left px-4 py-3 rounded-xl font-medium transition active:scale-95">Adverb</button>
+            </div>
+
+            <div class="w-full md:w-3/4 p-6 md:p-10 min-h-[300px] flex flex-col">
+                <div id="concept-content" class="animate__animated animate__fadeIn"></div>
+                <div id="deep-dive-result" class="hidden mt-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800 text-sm">
+                    <div id="deep-dive-loader" class="flex items-center gap-3">
+                        <div class="loader"></div> <span class="dark:text-indigo-200">Xpertistic AI is analyzing...</span>
+                    </div>
+                    <div id="deep-dive-text" class="dark:text-indigo-100 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Practice Arena -->
+    <section id="practice-arena" class="max-w-6xl mx-auto mt-16 px-4 mb-20 reveal-section">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <h2 class="text-2xl font-bold text-stone-900 dark:text-white border-l-4 border-indigo-600 pl-3">Practice Arena</h2>
+            <div class="bg-indigo-100 dark:bg-indigo-900/40 rounded-full px-5 py-2 shadow-sm">
+                <span class="text-sm font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">Score: <span id="score-display">0</span> pts</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Q1 -->
+                <div class="bg-white dark:bg-stone-900 p-5 md:p-7 rounded-2xl shadow-md border border-stone-200 dark:border-stone-800" id="q1-card">
+                    <p class="text-lg font-bold mb-5 text-stone-800 dark:text-white" id="q1-text">1. Identify the type: "<span class="italic text-indigo-600 dark:text-indigo-400">[The tall stone bridge]</span> looked quite sturdy."</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5" id="opts-q1">
+                        <label class="flex items-center gap-3 p-4 border-2 rounded-xl dark:border-stone-700 cursor-pointer hover:border-indigo-400 transition">
+                            <input type="radio" name="q1" value="Noun Phrase"> <span class="text-sm font-medium">Noun Phrase</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 border-2 rounded-xl dark:border-stone-700 cursor-pointer hover:border-indigo-400 transition">
+                            <input type="radio" name="q1" value="Noun Clause"> <span class="text-sm font-medium">Noun Clause</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 border-2 rounded-xl dark:border-stone-700 cursor-pointer hover:border-indigo-400 transition">
+                            <input type="radio" name="q1" value="Adjective Phrase"> <span class="text-sm font-medium">Adjective Phrase</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 border-2 rounded-xl dark:border-stone-700 cursor-pointer hover:border-indigo-400 transition">
+                            <input type="radio" name="q1" value="Verb Phrase"> <span class="text-sm font-medium">Verb Phrase</span>
+                        </label>
+                    </div>
+                    <button onclick="checkSmart('q1', 'Noun Phrase')" class="w-full md:w-auto bg-stone-900 dark:bg-white text-white dark:text-stone-900 px-8 py-3 rounded-xl font-bold hover:opacity-90 transition active:scale-95 shadow-md flex items-center justify-center gap-2">
+                        ✨ Check Answer
+                    </button>
+                    <div id="q1-fb-container" class="hidden mt-4 p-4 rounded-xl border animate__animated animate__fadeIn">
+                        <p id="q1-fb-main" class="font-bold mb-2"></p>
+                        <p id="q1-fb-ai" class="text-sm opacity-90 italic"></p>
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="bg-white dark:bg-stone-900 p-5 md:p-7 rounded-2xl shadow-md border border-stone-200 dark:border-stone-800" id="q2-card">
+                    <p class="text-lg font-bold mb-5 text-stone-800 dark:text-white" id="q2-text">2. What is the bracketed section? "I believe <span class="italic text-indigo-600 dark:text-indigo-400">[that the ocean is vast]</span>."</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5" id="opts-q2">
+                        <label class="flex items-center gap-3 p-4 border-2 rounded-xl dark:border-stone-700 cursor-pointer hover:border-indigo-400 transition">
+                            <input type="radio" name="q2" value="Noun Phrase"> <span class="text-sm font-medium">Noun Phrase</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 border-2 rounded-xl dark:border-stone-700 cursor-pointer hover:border-indigo-400 transition">
+                            <input type="radio" name="q2" value="Noun Clause"> <span class="text-sm font-medium">Noun Clause</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 border-2 rounded-xl dark:border-stone-700 cursor-pointer hover:border-indigo-400 transition">
+                            <input type="radio" name="q2" value="Adjective Clause"> <span class="text-sm font-medium">Adjective Clause</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-4 border-2 rounded-xl dark:border-stone-700 cursor-pointer hover:border-indigo-400 transition">
+                            <input type="radio" name="q2" value="Adverb Clause"> <span class="text-sm font-medium">Adverb Clause</span>
+                        </label>
+                    </div>
+                    <button onclick="checkSmart('q2', 'Noun Clause')" class="w-full md:w-auto bg-stone-900 dark:bg-white text-white dark:text-stone-900 px-8 py-3 rounded-xl font-bold hover:opacity-90 transition active:scale-95 shadow-md flex items-center justify-center gap-2">
+                        ✨ Check Answer
+                    </button>
+                    <div id="q2-fb-container" class="hidden mt-4 p-4 rounded-xl border animate__animated animate__fadeIn">
+                        <p id="q2-fb-main" class="font-bold mb-2"></p>
+                        <p id="q2-fb-ai" class="text-sm opacity-90 italic"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white dark:bg-stone-900 p-6 rounded-2xl shadow-md border border-stone-200 dark:border-stone-800 sticky top-20">
+                    <h2 class="text-xl font-bold mb-5 dark:text-white flex items-center gap-2">📊 Quiz Overview</h2>
+                    <div class="space-y-5">
+                        <div class="bg-stone-50 dark:bg-stone-850 p-4 rounded-xl">
+                            <div class="flex justify-between items-center text-sm mb-2">
+                                <span class="text-stone-500 font-medium">Progress</span>
+                                <span class="font-bold text-indigo-600" id="completion-stat">0 / 2</span>
+                            </div>
+                            <div class="w-full bg-stone-200 dark:bg-stone-700 h-2 rounded-full overflow-hidden">
+                                <div id="progress-bar" class="bg-indigo-600 h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center p-3 border-b dark:border-stone-800">
+                            <span class="text-sm text-stone-500">Success Rate</span>
+                            <span class="text-lg font-black text-indigo-600" id="rate-stat">0%</span>
+                        </div>
+                        <div class="chart-container mt-4">
+                            <canvas id="masteryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const apiKey = "";
+        let isDark = false;
+        let masteryChart;
+        let score = 0;
+        let completed = 0;
+
+        async function callGemini(prompt, systemInstruction) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { 
+                contents: [{ parts: [{ text: prompt }] }], 
+                systemInstruction: { parts: [{ text: systemInstruction }] } 
+            };
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    }
+                } catch (e) {}
+                await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+            }
+            return "Connection error. Please try again.";
+        }
+
+        async function analyzeSentence() {
+            const input = document.getElementById('ai-input').value;
+            if (!input) return;
+
+            const area = document.getElementById('ai-result-area');
+            const loader = document.getElementById('ai-loader');
+            const content = document.getElementById('ai-analysis-content');
+
+            area.classList.remove('hidden');
+            loader.classList.remove('hidden');
+            content.innerText = "";
+
+            const prompt = `Analyze this sentence: "${input}". Identify any major phrases (noun, adjective, adverb) and clauses (noun, adjective, adverb). Explain their function briefly. Keep it educational and encouraging. Use bullet points.`;
+            const result = await callGemini(prompt, "You are the Xpertistic Sentence Architect, a grammar expert for students.");
+            
+            loader.classList.add('hidden');
+            content.innerText = result;
+        }
+
+        async function checkSmart(qId, correct) {
+            const inputs = document.getElementsByName(qId);
+            let selected = "";
+            let selectedEl;
+            inputs.forEach(i => { 
+                if(i.checked) {
+                    selected = i.value;
+                    selectedEl = i.parentElement;
+                }
+                i.disabled = true;
+            });
+
+            if(!selected) return;
+
+            completed++;
+            const container = document.getElementById(qId + '-fb-container');
+            const fbMain = document.getElementById(qId + '-fb-main');
+            const fbAi = document.getElementById(qId + '-fb-ai');
+            const qText = document.getElementById(qId + '-text').innerText;
+
+            container.classList.remove('hidden');
+            fbAi.innerText = "✨ AI is generating feedback...";
+            
+            if(selected === correct) {
+                score++;
+                fbMain.innerText = "✓ Correct!";
+                container.className = "mt-4 p-4 rounded-xl border border-green-200 bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800 block animate__animated animate__fadeIn";
+                selectedEl.classList.add('correct-ans');
+                updateChart(true);
+            } else {
+                fbMain.innerText = `✗ Not quite. The correct answer is ${correct}.`;
+                container.className = "mt-4 p-4 rounded-xl border border-red-200 bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800 block animate__animated animate__fadeIn";
+                selectedEl.classList.add('wrong-ans');
+                updateChart(false);
+            }
+
+            // Get AI explanation
+            const prompt = `The student was asked to identify the type of the bracketed section in: "${qText}". They chose "${selected}" but the correct answer is "${correct}". Explain why "${correct}" is right in one or two short, helpful sentences.`;
+            const result = await callGemini(prompt, "You are a friendly grammar tutor providing quick feedback.");
+            fbAi.innerText = result;
+
+            // Update UI Stats
+            document.getElementById('score-display').innerText = score * 10;
+            document.getElementById('completion-stat').innerText = `${completed} / 2`;
+            const rate = Math.round((score/completed)*100);
+            document.getElementById('rate-stat').innerText = rate + "%";
+            document.getElementById('progress-bar').style.width = (completed / 2 * 100) + "%";
+        }
+
+        const concepts = {
+            noun: { title: "Noun Role", desc: "Phrases and clauses serving as the subject or object of a sentence.", phraseText: "I saw [the tall mountain].", phraseHighlight: "the tall mountain", clauseText: "I saw [that the mountain is tall].", clauseHighlight: "that the mountain is tall" },
+            adj: { title: "Adjective Role", desc: "Structural elements that modify and describe nouns.", phraseText: "The traveler [with the map] smiled.", phraseHighlight: "with the map", clauseText: "The traveler [who has a map] smiled.", clauseHighlight: "who has a map" },
+            adv: { title: "Adverb Role", desc: "Modify verbs, adjectives, or other adverbs to indicate time, place, or manner.", phraseText: "We left [at sunrise].", phraseHighlight: "at sunrise", clauseText: "We left [when the sun rose].", clauseHighlight: "when the sun rose" }
+        };
+
+        let currentConcept = 'noun';
+        let isPhraseView = true;
+
+        async function getDeepDive() {
+            const textEl = document.getElementById('deep-dive-text');
+            const loader = document.getElementById('deep-dive-loader');
+            document.getElementById('deep-dive-result').classList.remove('hidden');
+            loader.classList.remove('hidden');
+            textEl.innerText = "";
+            const data = concepts[currentConcept];
+            const sentence = isPhraseView ? data.phraseText : data.clauseText;
+            const prompt = `Explain why the bracketed part in "${sentence}" functions as a ${currentConcept === 'adj' ? 'Adjective' : currentConcept === 'adv' ? 'Adverb' : 'Noun'}. Use simple linguistic terms.`;
+            const result = await callGemini(prompt, "You are Xpertistic AI, an expert linguist teaching Junaid Raza.");
+            loader.classList.add('hidden');
+            textEl.innerText = result;
+        }
+
+        function loadConcept(type) {
+            currentConcept = type;
+            isPhraseView = true;
+            document.getElementById('deep-dive-result').classList.add('hidden');
+            ['noun', 'adj', 'adv'].forEach(t => {
+                const b = document.getElementById(`btn-${t}`);
+                if(t === type) b.className = "whitespace-nowrap flex-1 md:flex-none text-center md:text-left px-5 py-3 rounded-xl font-bold transition bg-indigo-600 text-white shadow-md active:scale-95";
+                else b.className = "whitespace-nowrap flex-1 md:flex-none text-center md:text-left px-5 py-3 rounded-xl font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-800 transition active:scale-95";
+            });
+            renderConcept();
+        }
+
+        function renderConcept() {
+            const data = concepts[currentConcept];
+            const content = document.getElementById('concept-content');
+            const sentence = isPhraseView ? data.phraseText : data.clauseText;
+            const highlight = isPhraseView ? data.phraseHighlight : data.clauseHighlight;
+            const css = isPhraseView ? 'highlight-phrase' : 'highlight-clause';
+            
+            content.innerHTML = `
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold dark:text-white mb-2">${data.title}</h3>
+                    <p class="text-stone-600 dark:text-stone-400 text-sm md:text-base">${data.desc}</p>
+                </div>
+                <div class="bg-stone-50 dark:bg-stone-850 rounded-2xl p-6 md:p-10 border-2 border-dashed border-stone-200 dark:border-stone-700 text-center">
+                    <p class="text-xl md:text-2xl font-semibold dark:text-stone-200 mb-8 leading-relaxed">
+                        ${sentence.replace(highlight, `<span class="${css}">${highlight}</span>`)}
+                    </p>
+                    <button onclick="isPhraseView=!isPhraseView;renderConcept();" class="bg-white dark:bg-stone-800 dark:text-white border-2 border-stone-200 dark:border-stone-700 px-6 py-3 rounded-full font-bold shadow-md hover:border-indigo-500 transition active:scale-90 text-sm">
+                        Switch to ${isPhraseView ? 'Clause' : 'Phrase'}
+                    </button>
+                </div>
+            `;
+        }
+
+        function toggleDarkMode() {
+            isDark = !isDark;
+            document.documentElement.classList.toggle('dark');
+            document.getElementById('theme-icon').innerText = isDark ? '☀️' : '🌙';
+            updateChartTheme();
+        }
+
+        function updateChartTheme() {
+            if(!masteryChart) return;
+            const color = isDark ? '#ffffff' : '#444444';
+            masteryChart.options.plugins.legend.labels.color = color;
+            masteryChart.update();
+        }
+
+        function initCharts() {
+            const ctx = document.getElementById('masteryChart').getContext('2d');
+            masteryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['Correct', 'Incorrect'], datasets: [{ data: [0, 0], backgroundColor: ['#4f46e5', '#ef4444'], borderWidth: 0 }] },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { color: isDark ? '#ffffff' : '#444444', font: { weight: 'bold' } } } }
+                }
+            });
+        }
+
+        function updateChart(correct) {
+            masteryChart.data.datasets[0].data[correct ? 0 : 1]++;
+            masteryChart.update();
+        }
+
+        function scrollToSection(id) { 
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { 
+            loadConcept('noun'); 
+            initCharts(); 
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.reveal-section').forEach(el => observer.observe(el));
+        });
+    </script>
+</body>
+</html>
